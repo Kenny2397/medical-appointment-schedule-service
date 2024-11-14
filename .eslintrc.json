@@ -1,0 +1,73 @@
+{
+	"env": {
+		"node": true,
+		"es2021": true
+	},
+	"extends": [],
+	"parser": "@typescript-eslint/parser",
+	"parserOptions": {
+		"ecmaVersion": "latest",
+		"sourceType": "module"
+	},
+	"plugins": [
+		"@stylistic/eslint-plugin-ts",
+		"@typescript-eslint/eslint-plugin"
+	],
+	"rules": {
+		"@stylistic/ts/semi": [
+			"error",
+			"never"
+		],
+		"@stylistic/ts/indent": [
+			"error",
+			2
+		],
+		"@stylistic/ts/quotes": [
+			"error",
+			"single"
+		],
+		"@stylistic/ts/comma-spacing": [
+			"error",
+			{
+				"before": false,
+				"after": true
+			}
+		],
+		"@stylistic/ts/object-curly-spacing": [
+			"error",
+			"always"
+		],
+		"@stylistic/ts/keyword-spacing": [
+			"error",
+			{
+				"after": true,
+				"before": true
+			}
+		],
+		"@stylistic/ts/space-before-function-paren": [
+			"error",
+			{
+				"anonymous": "always",
+				"named": "always",
+				"asyncArrow": "always"
+			}
+		],
+		"@stylistic/ts/space-infix-ops": "error",
+		"@stylistic/ts/space-before-blocks": [
+			"error",
+			{
+				"functions": "always",
+				"keywords": "always",
+				"classes": "always"
+			}
+		],
+		"@stylistic/ts/no-extra-parens": [
+			"error",
+			"all",
+			{
+				"returnAssign": true,
+				"enforceForArrowConditionals": true
+			}
+		]
+	}
+}

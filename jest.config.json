@@ -1,0 +1,64 @@
+{
+  "preset": "ts-jest",
+  "testEnvironment": "node",
+  "displayName": "appointment-service",
+  "roots": [
+    "<rootDir>"
+  ],
+  "modulePaths": [
+    "."
+  ],
+  "moduleNameMapper": {},
+  "setupFilesAfterEnv": [
+    "./jest.setup.ts"
+  ],
+  "moduleFileExtensions": [
+    "js",
+    "mjs",
+    "cjs",
+    "jsx",
+    "ts",
+    "tsx",
+    "json",
+    "node",
+    "d.ts"
+  ],
+  "testPathIgnorePatterns": [
+    "node_modules",
+    ".build",
+    "coverage",
+    ".esbuild"
+  ],
+  "modulePathIgnorePatterns": [
+    "node_modules",
+    ".build",
+    "coverage",
+    ".esbuild",
+    "<rootDir>/.build",
+    ".serverless"
+  ],
+  "verbose": true,
+  "collectCoverage": true,
+  "coverageDirectory": "coverage",
+  "collectCoverageFrom": [
+    "**/src/**/*.{js,jsx,ts,tsx}",
+    "!**/node_modules/**",
+    "!**/coverage/**"
+  ],
+  "coverageProvider": "babel",
+  "coverageThreshold": {
+    "global": {
+      "branches": 100,
+      "functions": 100,
+      "lines": 100,
+      "statements": 100
+    }
+  },
+  "coveragePathIgnorePatterns": [
+    "node_modules",
+    ".build/*",
+    "coverage",
+    ".esbuild",
+    ".serverless"
+  ]
+}

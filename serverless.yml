@@ -1,0 +1,313 @@
+service: appointment-service
+
+frameworkVersion: "3"
+
+provider:
+  name: aws
+  runtime: nodejs20.x
+  stage: ${opt:stage}
+  region: ${opt:region}
+  architecture: arm64
+  iamRoleStatements:
+    - Effect: "Allow"
+      Action:
+        - "dynamodb:BatchGetItem"
+        - "dynamodb:ConditionCheckItem"
+        - "dynamodb:GetItem"
+        - "dynamodb:PutItem"
+        - "dynamodb:Query"
+        - "dynamodb:UpdateItem"
+        - "dynamodb:DeleteItem"
+      Resource:
+        - "arn:aws:dynamodb:${opt:region}:*:table/${self:provider.environment.APPOINTMENT_SERVICE_TABLE_NAME}"
+    - Effect: "Allow"
+      Action:
+        - "dynamodb:GetItem"
+        - "dynamodb:Query"
+      Resource:
+        - "arn:aws:dynamodb:${opt:region}:*:table/${self:provider.environment.APPOINTMENT_SERVICE_TABLE_NAME}/index/GSI1"
+        - "arn:aws:dynamodb:${opt:region}:*:table/${self:provider.environment.APPOINTMENT_SERVICE_TABLE_NAME}/index/GSI2"
+        - "arn:aws:dynamodb:${opt:region}:*:table/${self:provider.environment.APPOINTMENT_SERVICE_TABLE_NAME}/index/GSI3"
+    - Effect: "Allow"
+      Action:
+        - "events:PutEvents"
+      Resource:
+        - "arn:aws:events:${opt:region}:${param:account}:event-bus/${opt:stage}-appointment-eventbus"
+        # - !GetAtt AppointmentEventBus.Arn
+  environment:
+    POWERTOOLS_LOG_LEVEL: "DEBUG"
+    POWERTOOLS_SERVICE_NAME: "appointment-service"
+    # POWERTOOLS_DEV: 1
+    POWERTOOLS_LOGGER_LOG_EVENT: "true" #context
+    # POWERTOOLS_TRACE_ENABLED: "false"
+
+    APPOINTMENT_SERVICE_TABLE_NAME: appointment-service-${opt:stage}
+    APPOINTMENT_EVENT_BUS: ${self:provider.stage}-appointment-eventbus
+    # PERU_APPOINTMENT_SQS: ${self:provider.stage}-peru-appointments-queue
+    # CHILE_APPOINTMENT_SQS: ${self:provider.stage}-chile-appointments-queue
+
+package:
+  individually: true
+  excludeDevDependencies: true
+
+custom:
+  defaultRegion: "us-east-1"
+  esbuild:
+    bundle: true
+    minify: true
+  prune:
+    automatic: true
+    number: 3
+  apiGatewayServiceProxies:
+    - sqs:
+        path: /appointment-status
+        method: post
+        cors: true
+        queueName: appointmentStatus
+        # request:
+        #   template:
+        #     application/json: |-
+        #       #set ($body = $util.parseJson($input.body))
+        #       Action=SendMessage##
+        #       &MessageGroupId=$util.urlEncode($body.event_type)##
+        #       &MessageDeduplicationId=$util.urlEncode($body.event_id)##
+        #       &MessageAttribute.1.Name=$util.urlEncode("X-Custom-Signature")##
+        #       &MessageAttribute.1.Value.DataType=String##
+        #       &MessageAttribute.1.Value.StringValue=$util.urlEncode($input.params("X-Custom-Signature"))##
+        #       &MessageBody=$util.urlEncode($input.body)
+        response:
+          template:
+            # `success` is used when the integration response is 200
+            success: |-
+              { "message": "accepted" }
+            # `clientError` is used when the integration response is 400
+            clientError: |-
+              { "message": "there is an error in your request" }
+            # `serverError` is used when the integration response is 500
+            serverError: |-
+              { "message": "there was an error handling your request" }
+  # lambdaInsights:
+  #   defaultLambdaInsights: true
+  #   lambdaInsightsVersion: 16
+  #   attachPolicy: true
+  responseGetters:
+    headers:
+      Content-Type: "'application/json'"
+      Content-Security-Policy: "'Include default-src 'self''"
+      X-Frame-Options: "'DENY'"
+      X-Content-Type-Options: "'nosniff'"
+      X-Permitted-Cross-Domain-Policies: "'none'"
+      Strict-Transport-Security: "'max-age=31536000; includeSubDomains; preload'"
+      X-XSS-Protection: "'1'"
+      Cache-Control: "'max-age=0; Expires=-1 or Expires: Fri, 01 Jan 1990 00:00:00 GMT; no-cache, must-revalidate'"
+    statusCodes:
+      200:
+        pattern: ""
+      400:
+        pattern: '.*"statusCode":400.*'
+        template: "$input.path('$.errorMessage')"
+      401:
+        pattern: '.*"statusCode":401.*'
+        template: "$input.path('$.errorMessage')"
+      404:
+        pattern: '.*"statusCode":404.*'
+        template: "$input.path('$.errorMessage')"
+      500:
+        pattern: '.*"statusCode":500.*'
+        template: "$input.path('$.errorMessage')"
+
+plugins:
+  - serverless-prune-plugin
+  - serverless-lift
+  - serverless-apigateway-service-proxy
+  - serverless-esbuild
+  - serverless-offline
+
+functions:
+  getAllDoctors:
+    handler: src/functions/getAllDoctors.handler
+    description: Get all doctors by speciality in a country
+    timeout: 30
+    memorySize: 512
+    events:
+      - http:
+          method: GET
+          integration: lambda
+          path: /doctors
+          request:
+            parameters:
+              querystrings:
+                country: true # Requerido
+                specialty: true
+          response: ${self:custom.responseGetters}
+          authorizer:
+            name: authAuthorizer
+            identitySource: method.request.header.Authorization
+            type: token
+
+  appointmentEventPublisher:
+    handler: src/functions/appointmentEventPublisher.handler
+    events:
+      - http:
+          method: POST
+          path: /appointment
+          integration: lambda
+          response: ${self:custom.responseGetters}
+          authorizer:
+            name: authAuthorizer
+            identitySource: method.request.header.Authorization
+            type: token
+  authAuthorizer:
+    handler: src/functions/authAuthorizer.handler
+
+resources:
+  Resources:
+    AppointmentEventBus:
+      Type: AWS::Events::EventBus
+      Properties:
+        Name: ${self:provider.stage}-appointment-eventbus
+
+    AppointmentsTable:
+      Type: AWS::DynamoDB::Table
+      Properties:
+        TableName: ${self:provider.environment.APPOINTMENT_SERVICE_TABLE_NAME}
+        AttributeDefinitions:
+          - AttributeName: "PK"
+            AttributeType: "S"
+          - AttributeName: "SK"
+            AttributeType: "S"
+          - AttributeName: "GSI1PK"
+            AttributeType: "S"
+          - AttributeName: "GSI1SK"
+            AttributeType: "S"
+          - AttributeName: "GSI2PK"
+            AttributeType: "S"
+          - AttributeName: "GSI2SK"
+            AttributeType: "S"
+          - AttributeName: "GSI3PK"
+            AttributeType: "S"
+          - AttributeName: "GSI3SK"
+            AttributeType: "S"
+        KeySchema:
+          - AttributeName: "PK"
+            KeyType: "HASH"
+          - AttributeName: "SK"
+            KeyType: "RANGE"
+        BillingMode: PAY_PER_REQUEST
+        TimeToLiveSpecification:
+          AttributeName: "TTL"
+          Enabled: true
+        GlobalSecondaryIndexes:
+          - IndexName: "GSI1"
+            KeySchema:
+              - AttributeName: "GSI1PK"
+                KeyType: "HASH"
+              - AttributeName: "GSI1SK"
+                KeyType: "RANGE"
+            Projection:
+              ProjectionType: "ALL"
+          - IndexName: "GSI2"
+            KeySchema:
+              - AttributeName: "GSI2PK"
+                KeyType: "HASH"
+              - AttributeName: "GSI2SK"
+                KeyType: "RANGE"
+            Projection:
+              ProjectionType: "ALL"
+          - IndexName: "GSI3"
+            KeySchema:
+              - AttributeName: "GSI3PK"
+                KeyType: "HASH"
+              - AttributeName: "GSI3SK"
+                KeyType: "RANGE"
+            Projection:
+              ProjectionType: "ALL"
+
+    PeruAppointmentRule:
+      Type: AWS::Events::Rule
+      DependsOn:
+        - AppointmentEventBus
+      Properties:
+        EventBusName: ${self:provider.stage}-appointment-eventbus
+        EventPattern:
+          source:
+            - "appointment.service"
+          detail-type:
+            - "AppointmentCreated"
+          detail:
+            country:
+              - "peru"
+        Targets:
+          - Arn: ${construct:PeruAppointmentQueue.queueArn}
+            Id: "PeruAppointmentQueue"
+
+    ChileAppointmentRule:
+      Type: AWS::Events::Rule
+      DependsOn:
+        - AppointmentEventBus
+      Properties:
+        EventBusName: ${self:provider.stage}-appointment-eventbus
+        EventPattern:
+          source:
+            - "appointment.service"
+          detail-type:
+            - "AppointmentCreated"
+          detail:
+            country:
+              - "chile"
+        Targets:
+          - Arn: ${construct:ChileAppointmentQueue.queueArn}
+            Id: "ChileAppointmentQueue"
+
+    PeruEventBridgeToSQSPolicy:
+      Type: AWS::SQS::QueuePolicy
+      Properties:
+        Queues:
+          - ${construct:PeruAppointmentQueue.queueUrl}
+          - ${construct:ChileAppointmentQueue.queueUrl}
+        PolicyDocument:
+          Version: "2012-10-17"
+          Statement:
+            - Effect: Allow
+              Principal:
+                Service: events.amazonaws.com
+              Action: sqs:SendMessage
+              Resource: arn:aws:sqs:${opt:region}:${param:account}:*
+              Condition:
+                ArnEquals:
+                  aws:SourceArn: !GetAtt PeruAppointmentRule.Arn
+
+            - Effect: Allow
+              Principal:
+                Service: events.amazonaws.com
+              Action: sqs:SendMessage
+              Resource: ${construct:ChileAppointmentQueue.queueArn}
+              Condition:
+                ArnEquals:
+                  aws:SourceArn: !GetAtt ChileAppointmentRule.Arn
+
+constructs:
+  PeruAppointmentQueue:
+    type: queue
+    # batchSize: 1
+    worker:
+      handler: src/functions/PeruAppointmentQueueWorker.handler
+      # reservedConcurrency: 1
+
+  ChileAppointmentQueue:
+    type: queue
+    # batchSize: 1
+    worker:
+      handler: src/functions/ChileAppointmentQueueWorker.handler
+      # reservedConcurrency: 1
+
+  UpdateStatusQueue:
+    type: queue
+    # batchSize: 1
+    extensions:
+      queue:
+        Properties:
+          QueueName: appointmentStatus
+    worker:
+      handler: src/functions/UpdateStatusQueueWorker.handler
+      # reservedConcurrency: 1
