@@ -1,5 +1,5 @@
 
-# medical appointment scheduling service
+# Medical appointment scheduling service
 
 ## 1. Diseño de Arquitectura
 
@@ -131,6 +131,8 @@ Clone this repository and install dependencies
 * Get doctors by country and specialty
 * Get doctors info
 * Get Patient INFO
-
+* Consult appointments of user
+* Consult appointments of doctor
+* Check Availabilty appointment of doctor
 
 

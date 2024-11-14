@@ -5,7 +5,7 @@
   "scripts": {
     "dev": "serverless offline start --stage dev --region us-east-1",
     "pkg": "serverless package --stage dev --region us-east-1",
-    "deploy": "serverless deploy --stage dev --region us-east-1 --param=account=975050306436",
+    "deploy": "serverless deploy --stage dev --region us-east-1 --param=account=1",
     "lint": "eslint . --ext .ts",
     "lint:fix": "eslint . --ext .ts --fix",
     "test": "jest --ci --detectOpenHandles --config=jest.config.json",
