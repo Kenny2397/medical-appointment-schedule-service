@@ -68,14 +68,6 @@ En cuanto al manejo de errores, implementaré las siguientes estrategias:
 - **Flujos de Compensación**: En caso de errores en pasos intermedios de una transacción, ejecutaremos flujos de compensación para revertir los cambios y dejar el sistema en un estado consistente.
 
 
-## 8. Consideraciones Adicionales
-
-Para manejar la latencia de respuesta al usuario, se podrían implementar las siguientes estrategias:
-
-- **Colas de Mensaje**: Utilizar Amazon SQS para recibir solicitudes de agendamiento y procesarlas de manera asincrónica, enviando una respuesta provisional al usuario de forma inmediata.
-- **Caché de Disponibilidad de Doctores**: Almacenar en caché (ElastiCache) la disponibilidad de los doctores por país, país y fecha, para responder rápidamente a las consultas de los usuarios.
-- **Notificaciones Asincrónicas**: Enviar notificaciones sobre el estado de las citas a través de SNS, en lugar de esperar a que el usuario consulte el estado.
-
 
 ## Usage
 
