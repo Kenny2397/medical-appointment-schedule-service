@@ -65,15 +65,15 @@ Para asegurar la protección de datos sensibles, se aplicarán las siguientes me
 
 ## 6. Monitoreo y Manejo de Errores
 
-Para el monitoreo del sistema, utilizaré Amazon CloudWatch con las siguientes funcionalidades:
+Para el monitoreo del sistema, se utiliza Amazon CloudWatch con las siguientes funcionalidades:
 
 - **Métricas y Alertas**: Se define métricas clave, como errores de API, duración de Lambda, y alertas para notificar problemas.
-- **Registros y Análisis**: se envia los registros de Lambda, API Gateway y DynamoDB a CloudWatch Logs para su análisis y depuración.
+- **Registros y Análisis**: Se envia los registros de Lambda, API Gateway y DynamoDB a CloudWatch Logs para su análisis y depuración.
 - **Dashboards**: dashboards personalizados para visualizar el estado y el rendimiento general del sistema.
 
 En cuanto al manejo de errores, implementaré las siguientes estrategias:
 
-- **Reintentos Automáticos**: Configuraré las funciones Lambda y la API Gateway para reintentar automáticamente las solicitudes fallidas.
+- **Reintentos Automáticos**: Se Configura las funciones Lambda y la API Gateway para reintentar automáticamente las solicitudes fallidas.
 - **Gestión de Excepciones**: Capturaremos y manejaremos de manera adecuada todas las excepciones en las funciones Lambda, brindando respuestas descriptivas a los usuarios.
 - **Flujos de Compensación**: En caso de errores en pasos intermedios de una transacción, ejecutaremos flujos de compensación para revertir los cambios y dejar el sistema en un estado consistente.
 
@@ -94,6 +94,10 @@ Clone this repository and install dependencies
 - deploy
 
     npm run deploy
+
+This microservice is production ready...! 🚀✨
+
+![Medical Appointment System Architecture Diagram](assets/Deploy.png "aa")
 
 
 ## Estrctura del proyecto
