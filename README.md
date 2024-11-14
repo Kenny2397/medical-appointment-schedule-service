@@ -102,7 +102,7 @@ This microservice is production ready...! 🚀✨
 
 ## Estrctura del proyecto
 
-Se implementa una arquitectura de software Hexagonal para tener aislada la lógica de dominio y el código de infraestructura, esto nos da la modularidad para poder mantener mas facilmente el código auemntando la flexibilidad y testabilidad para cada DOD.
+Se implementa una arquitectura de software Hexagonal para tener aislada la lógica de dominio y el código de infraestructura, esto nos da la modularidad para poder mantener facilmente el código aumentando la flexibilidad y testabilidad para cada DOD.
 
 ```bash
 
