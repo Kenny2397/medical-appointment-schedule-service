@@ -24,15 +24,9 @@ En la carpeta assets se encuentra el archivo STD Medical Appointment.xlsx para u
 
 ## 3. Procesamiento por País
 
-Para manejar la lógica específica por país, utilizaré una arquitectura basada en eventos con EventBRidge, SQS y  Lambda Functions. Cuando se recibe una solicitud de agendamiento a través de la API Gateway, se envía un evento a una Lambda Function que se encarga de procesar la solicitud y envair un evento al evntBus de eventBridge para ser procesada de forma asincrona, mediante una SQS y Lambda worker.
+Para manejar la lógica específica por país, utilizaré una arquitectura basada en eventos con EventBRidge, SQS y  Lambda Functions. Cuando se recibe una solicitud de agendamiento a través de la API Gateway, se envía un evento a una Lambda Function que se encarga de procesar la solicitud y enviar un evento al eventBus de eventBridge para ser procesada de forma asincrona, mediante una SQS y Lambda worker que dependiendo de las reglas que apliquen por país tomen ciertos procesos.
 
-Cada Lambda Function tendrá acceso a las tablas de DynamoDB y podrá realizar las siguientes operaciones:
-
-- Registrar una nueva cita
-- Actualizar el estado de una cita
-- Notificar a los usuarios a través de SNS
-
-Para agregar un nuevo país al sistema, bastaría con crear una nueva SQS Worker y Lambda Function que implemente la lógica de ese país y configurar las reglas en el eventBus
+Para agregar un nuevo país al sistema, bastaría con crear una nueva SQS Worker y Lambda Function que implemente la lógica de ese país y configurar las reglas en el eventBus con el nuevo país.
 
 ## 4. Escalabilidad y Rendimiento
 
@@ -41,8 +35,9 @@ La arquitectura propuesta es altamente escalable, ya que cada componente se esca
 - **API Gateway**: Escala automáticamente para manejar variaciones en el tráfico.
 - **Lambda Functions**: Se ejecutan bajo demanda y se escalan automáticamente según la carga.
 - **DynamoDB**: Es un servicio de base de datos altamente escalable y de alto rendimiento.
-
+- **SQS**: Para manejar de froma asicrona ciertas peticiones no críticas.
 Para mejorar el rendimiento, se podría implementar un sistema de caché utilizando ElastiCache (Redis) para almacenar datos de consulta frecuente, como disponibilidad de doctores.
+
 
 ## 5. Seguridad y Cumplimiento
 
@@ -87,6 +82,8 @@ Clone this repository and install dependencies
 
 
 ## Estrctura del proyecto
+
+Se implementa una arquitectura de software Hexagonal para tener aislada la lógica de dominio y el código de infraestructura, esto nos da la modularidad para poder mantener mas facilmente el código auemntando la flexibilidad y testabilidad para cada DOD.
 
 ```bash
 
