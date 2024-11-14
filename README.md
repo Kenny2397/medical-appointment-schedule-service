@@ -20,6 +20,8 @@ La estructura de datos en DynamoDB sería usando el diseño de tabla única STD:
 
 ![Medical Appointment System Architecture Diagram](assets/STD.png "aa")
 
+En la carpeta assets se encuentra el archivo STD Medical Appointment.xlsx para una mejor visualización
+
 ## 3. Procesamiento por País
 
 Para manejar la lógica específica por país, utilizaré una arquitectura basada en eventos con EventBRidge, SQS y  Lambda Functions. Cuando se recibe una solicitud de agendamiento a través de la API Gateway, se envía un evento a una Lambda Function que se encarga de procesar la solicitud y envair un evento al evntBus de eventBridge para ser procesada de forma asincrona, mediante una SQS y Lambda worker.
