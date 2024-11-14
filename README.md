@@ -16,11 +16,26 @@ Para este sistema de agendamiento de citas médicas, propongo una arquitectura s
 
 ## 2. Manejo de Datos
 
-La estructura de datos en DynamoDB sería usando el diseño de tabla única STD:
+La estructura de datos en DynamoDB esta dado por el diseño de tabla única STD:
 
 ![Medical Appointment System Architecture Diagram](assets/STD.png "aa")
 
 En la carpeta assets se encuentra el archivo STD Medical Appointment.xlsx para una mejor visualización
+
+Se tienen los siguientes patrones de acceso 
+
+### Medical appointment scheduling service business use case
+
+* Create a appointment  medical
+* Update State of a appointment
+* Get doctors by country and specialty
+* Get doctors info
+* Get Patient INFO
+* Consult appointments of user
+* Consult appointments of doctor
+* Check Availabilty appointment of doctor
+..
+
 
 ## 3. Procesamiento por País
 
@@ -115,15 +130,6 @@ Se implementa una arquitectura de software Hexagonal para tener aislada la lógi
 
 ```
 
-## Medical appointment scheduling service business use case
 
-* Create a appointment  medical
-* Update State of a appointment
-* Get doctors by country and specialty
-* Get doctors info
-* Get Patient INFO
-* Consult appointments of user
-* Consult appointments of doctor
-* Check Availabilty appointment of doctor
 
 
